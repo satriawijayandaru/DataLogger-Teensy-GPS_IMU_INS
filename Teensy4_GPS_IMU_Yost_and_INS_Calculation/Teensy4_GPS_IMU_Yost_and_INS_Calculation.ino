@@ -16,6 +16,7 @@ char incomingByte;
 int incomingInt;
 unsigned long previousMillisIMU = 0;
 float imuX, imuY, imuZ;
+float G = 9.80665;
 
 //INS Calculation
 float gx, gy, gz;
@@ -31,15 +32,13 @@ void setup() {
 }
 
 void loop() {
-  
   getImu(100);
-  
 }
 
 void insCalc() {
   unsigned long currentMillis = millis();
   dt = (currentMillis - previousMillis) / 1000.0;
-  
+
   gx = imuX * 9.8;
   gy = imuY * 9.8;
   gz = imuZ * 9.8;
@@ -47,6 +46,7 @@ void insCalc() {
   x = k * (x + gx * dt) + (1 - k) * lat;
   y = k * (y + gy * dt) + (1 - k) * lon;
   z = k * (z + gz * dt) + (1 - k) * alt;
+  
   ser1.print("DT = ");
   ser1.println(dt);
   ser1.print("lat INS = ");
@@ -55,6 +55,7 @@ void insCalc() {
   ser1.println(y);
   ser1.print("alt INS = ");
   ser1.println(z);
+  ser1.println();
   previousMillis = currentMillis;
 }
 
@@ -65,27 +66,25 @@ void getImu(int interval) {
   unsigned long currentMillis = millis();
   if (currentMillis - previousMillisIMU >= interval) {
     previousMillisIMU = currentMillis;
-    ser1.print(millis());
-    ser1.print("--");
-    ser1.println("Requesting :34");
-    IMU.println(":34");
+//    IMU.println(":34");
+    IMU.println(":41");
   }
 }
 
 void dataPreparation() {
-  imuX   = incomingCSV[2].toFloat();
-  imuY   = incomingCSV[0].toFloat();
-  imuZ   = incomingCSV[1].toFloat();
-//  imuX   = radToDeg(incomingCSV[2].toFloat());
-//  imuY   = radToDeg(incomingCSV[0].toFloat());
-//  imuZ   = radToDeg(incomingCSV[1].toFloat());
+  imuX   = incomingCSV[2].toFloat() / G;
+  imuY   = incomingCSV[0].toFloat() / G;
+  imuZ   = incomingCSV[1].toFloat() / G;
+  //  imuX   = radToDeg(incomingCSV[2].toFloat());
+  //  imuY   = radToDeg(incomingCSV[0].toFloat());
+  //  imuZ   = radToDeg(incomingCSV[1].toFloat());
 
   Serial.print("X = ");
-  Serial.println(imuX);
+  Serial.println(imuX, 3);
   Serial.print("Y = ");
-  Serial.println(imuY);
+  Serial.println(imuY, 3);
   Serial.print("Z = ");
-  Serial.println(imuZ);
+  Serial.println(imuZ, 3);
   insCalc();
 }
 
